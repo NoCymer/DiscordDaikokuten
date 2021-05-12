@@ -1,0 +1,2 @@
+# DiscordDaikokuten
+Discord Daikokuten Bot
