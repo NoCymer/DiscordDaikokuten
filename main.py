@@ -55,7 +55,7 @@ async def ban(ctx, member: discord.Member, *, reason="No reason has been given")
     banned_member_name = member.display_name
     if not banned_member_name == "" or not banned_member_name == " ":
         await member.ban(reason=reason)
-    bot_msg = await ctx.channel.send(f'{banned_member_name} has been banned beacause of : {reason}')
+    bot_msg = await ctx.channel.send(f'{banned_member_name} has been banned because of : {reason}')
     await wait_and_delete_msgs(ctx, bot_msg)
 
 
@@ -67,7 +67,7 @@ async def kick(ctx, member: discord.Member, *, reason="No reason has been given"
     kicked_member_name = member.display_name
     if not kicked_member_name == "" or not kicked_member_name == " ":
         await member.kick(reason=reason)
-    bot_msg = await ctx.channel.send(f'{kicked_member_name} has been kicked beacause of : {reason}')
+    bot_msg = await ctx.channel.send(f'{kicked_member_name} has been kicked because of : {reason}')
     await wait_and_delete_msgs(ctx, bot_msg)
 
 
@@ -88,6 +88,21 @@ async def clear(ctx, member: discord.Member, arg2=1):
     await wait_and_delete_msgs(ctx, bot_msg)
 
 
+@commands.has_permissions(manage_messages=True)
+@client.command()
+async def clearall(ctx, arg2=1):
+    # clears a provided number of messages in the current contex
+    counter = 0
+    number_of_msgs = arg2
+    messages = await ctx.channel.history(limit=200, ).flatten()
+    for message in messages:
+        if int(counter) < int(number_of_msgs + 1):
+            counter += 1
+            await message.delete()
+    bot_msg = await ctx.channel.send(f'{str(counter - 1)} Messages have been deleted')
+    await wait_and_delete_msgs(ctx, bot_msg)
+
+
 @client.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
@@ -102,6 +117,15 @@ async def on_command_error(ctx, error):
         bot_msg = await ctx.send(
             "Syntax incorrect, please use this construction :"
             "`!news subject`")
+        await wait_and_delete_msgs(ctx, bot_msg)
+
+
+@clear.error
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        bot_msg = await ctx.send(
+            "Syntax incorrect, please use this construction :"
+            "`!clear discordMember numberOfMessages`")
         await wait_and_delete_msgs(ctx, bot_msg)
 
 
