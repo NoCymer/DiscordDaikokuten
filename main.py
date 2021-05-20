@@ -34,14 +34,23 @@ async def news(ctx, *, arg):
         await ctx.reply('Here is the news : ' + news_api.getnews(arg), mention_author=False)
     except IndexError:
         bot_msg = await ctx.reply(
-            "Sorry no news have been found for this given subject ¯\_(ツ)_/¯", mention_author=False)
+            r"Sorry no news have been found for this given subject ¯\_(ツ)_/¯", mention_author=False)
         await wait_and_delete_msgs(ctx, bot_msg)
 
 
 @client.command()
-async def hentai(ctx, *, arg):
+async def hentai(ctx, *args):
     if ctx.channel.nsfw:
-        await ctx.reply('Here is the sauce : ' + await nsfw_api.get_hentai(arg), mention_author=False)
+        print(args)
+        sauce = await nsfw_api.get_hentai(args)
+        embed_var = discord.Embed(title="The holy requested sauce",
+                                  description=f"[Source]({sauce}) image taken from [gelbooru.com](https://gelbooru.com)",
+                                  color=0xff99e0)
+        embed_var.add_field(name="Requested by", value=f"{ctx.message.author}", inline=False)
+        embed_var.set_image(url=sauce)
+        await ctx.channel.send(embed=embed_var)
+        if "mp4" in sauce or "mov" in sauce or "avi" in sauce or "mkv" in sauce:
+            await ctx.channel.send(f"{sauce}")
     else:
         bot_msg = await ctx.reply('Sorry this is not an NSFW channel', mention_author=False)
         await wait_and_delete_msgs(ctx, bot_msg)
