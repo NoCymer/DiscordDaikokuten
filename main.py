@@ -1,9 +1,8 @@
 import discord
 from discord.ext import commands
 import asyncio
-from assets import news_api
-from assets import nsfw_api
-time_sleep_const = 10
+from assets import nsfw_api, news_api
+SLEEP_TIME = 10
 
 
 def read_token():
@@ -17,7 +16,7 @@ client = commands.Bot(command_prefix='!')
 
 
 async def wait_and_delete_msgs(ctx, bot_msg):
-    await asyncio.sleep(time_sleep_const)
+    await asyncio.sleep(SLEEP_TIME)
     try:
         await ctx.message.delete()
     except discord.errors.NotFound:
@@ -31,7 +30,7 @@ async def wait_and_delete_msgs(ctx, bot_msg):
 @client.command()
 async def news(ctx, *, arg):
     try:
-        await ctx.reply('Here is the news : ' + news_api.getnews(arg), mention_author=False)
+        await ctx.reply('Here is the news : ' + news_api.get_news(arg), mention_author=False)
     except IndexError:
         bot_msg = await ctx.reply(
             r"Sorry no news have been found for this given subject ¯\_(ツ)_/¯", mention_author=False)
