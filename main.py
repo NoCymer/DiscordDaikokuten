@@ -1,9 +1,13 @@
 import discord
 from discord.ext import commands
 import asyncio
-from assets import news_api
-from assets import nsfw_api
-time_sleep_const = 10
+from discord.ext.commands import *
+from assets import news_api, nsfw_api
+from discord_components import *
+from discord.utils import get
+from discord_components.button import Button, ButtonStyle
+
+TIME_CONST = 10
 
 
 def read_token():
@@ -14,10 +18,11 @@ def read_token():
 
 token = read_token()
 client = commands.Bot(command_prefix='!')
+ddb = DiscordComponents(client)
 
 
 async def wait_and_delete_msgs(ctx, bot_msg):
-    await asyncio.sleep(time_sleep_const)
+    await asyncio.sleep(TIME_CONST)
     try:
         await ctx.message.delete()
     except discord.errors.NotFound:
@@ -26,6 +31,50 @@ async def wait_and_delete_msgs(ctx, bot_msg):
         await bot_msg.delete()
     except discord.errors.NotFound:
         pass
+
+
+@client.command()
+@has_permissions(administrator=True)
+async def post_rules(ctx):
+    embed=discord.Embed(title="\u200b", color=0x36393f)
+    embed.set_image(url="https://cdn.discordapp.com/attachments/848876190596071434/854391681775173682/Nycteis.png")
+    await ctx.send(embed=embed)
+    embed=discord.Embed(title="✧═══════•**WELCOME TO NYCTEIS**•══════✧", description="📌**PLEASE READ THE FOLLOWING RULES**📌", color=0x36393f)
+    embed.set_footer(text="ALL INFRACTIONS TO THESE RULES WILL RESULT TO A\nSANCTION PROPORTIONAL TO THE GRAVITY OF INFRACTION")
+    await ctx.send(embed=embed)
+    #RULE 1
+    embed=discord.Embed(title="✧════════════•**RULE 1**•════════════✧", description="**► YOU MUST FOLLOW ALL DISCORD [TERMS OF\n SERVICE](https://discord.com/terms) AND [GUIDELINES](https://discord.com/guidelines)**", color=0x36393f)
+    await ctx.send(embed=embed)
+    #RULE 2
+    embed=discord.Embed(title="✧════════════•**RULE 2**•════════════✧", description="**► ALL KINDS OF SPAMS ARE PROHIBITED\n(INCLUDING DM ADVERTISING) AND\nWILL RESULT TO A BAN**", color=0x36393f)
+    await ctx.send(embed=embed)
+    #RULE 3
+    embed=discord.Embed(title="✧════════════•**RULE 3**•════════════✧", description="**► ALL TARGETED HARASSMENT, BULLYING, SEXISM\nOR ANY KIND OF DISCRIMINATION ARE FORBIDDEN**", color=0x36393f)
+    await ctx.send(embed=embed)
+    #RULE 4
+    embed=discord.Embed(title="✧════════════•**RULE 4**•════════════✧", description="**► ALL SELF PROMOTING OR ADVERTISING ARE\nPROHIBITED UNLESS YOU ARE AUTHORISED\nTO DO SO**", color=0x36393f)
+    await ctx.send(embed=embed)
+    #RULE 5
+    embed=discord.Embed(title="✧════════════•**RULE 5**•════════════✧", description="**► ALL NSFW POSTS MUST ME IN THE NSFW\nCHANNEL, ELSE YOUR POST WILL BE DELETED\nAND YOU WILL BE WARNED**", color=0x36393f)
+    await ctx.send(embed=embed)
+    #HELP
+    founder = "<@&478713975941627920>"
+    moderator = "<@&473558943625379840>"
+    trial_moderator = "<@&853255073017626626>"
+    embed=discord.Embed(title="✧═════════════•**HELP**•════════════✧", description=f"**► IF YOU HAVE ANY QUESTION OR PROBLEM\nPLEASE LET US KNOW AND SEND A MESSAGE TO A\n{moderator}, {trial_moderator} OR TO THE {founder}**", color=0x36393f)
+    await ctx.send(embed=embed)
+    #REPORTS
+    embed=discord.Embed(title="✧═══════════•**REPORTS**•═══════════✧", description="**► IF YOU WANT TO REPORT SOMEONE WHO DID\nNOT RESPECT THE RULES DO NOT FORGET\n TO GIVE PROOFS**", color=0x36393f)
+    await ctx.send(embed=embed)
+    await ctx.message.delete()
+
+
+@client.command()
+@has_permissions(administrator=True)
+async def post_button(ctx):
+    embed = discord.Embed(title="✧════════•**MEMBERSHIP ACCESS**•══════✧", description="**► TO GAIN MEMBERSHIP ACCESS PLEASE CLICK\nON THE FOLLOWING BUTTON** <a:check_ravena:853332159564349491>", color=0x2f3136)
+    await ctx.send(embed=embed, components=[Button(style=ButtonStyle.blue, label="I have read the rules and agree to respect them")])
+    await ctx.message.delete()
 
 
 @client.command()
@@ -150,12 +199,24 @@ async def on_command_error(ctx, error):
             " `!hentai characterName_(animeName)` or `!hentai characterName`")
         await wait_and_delete_msgs(ctx, bot_msg)
 
-# @client.event
-# async def on_message(message):
-#     if message.author == client.user:
-#         return
-#     else:
-#         await process_command(message)
+
+async def membership_admission_button():
+    while True:
+        res = await client.wait_for("button_click")
+        if res.channel.id == 855253520675897344:
+            guild = client.get_guild(res.guild.id)
+            member = await guild.fetch_member(res.user.id)
+            if get(res.guild.roles,id=816808289512718337) in member.roles:
+                await res.respond(
+                type=InteractionType.ChannelMessageWithSource,
+                content=f"¯\_(ツ)_/¯ It looks like you are already a verified member of {guild.name} <a:check_ravena:853332159564349491>"
+                )
+            else:
+                await member.add_roles(get(res.guild.roles,id=816808289512718337))
+                await res.respond(
+                    type=InteractionType.ChannelMessageWithSource,
+                    content=f"Congratulations <a:zero_two:853224128412123136> you are now a verified member of {guild.name} <a:check_ravena:853332159564349491>"
+                )
 
 
 @client.event
@@ -166,6 +227,7 @@ async def on_ready():
     print(client.user.id)
     print('------------------')
     await client.change_presence(activity=discord.Game(name="rule over the world"))
+    asyncio.run(await membership_admission_button())
 
 
 client.run(token)

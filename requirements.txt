@@ -2,3 +2,4 @@ discord
 discord.py
 GoogleNews
 pygelbooru
+discord_components
