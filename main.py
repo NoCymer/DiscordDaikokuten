@@ -5,10 +5,11 @@ from discord.ext.commands import *
 from assets import news_api, nsfw_api
 from discord_components import *
 from discord.utils import get
+from discord_slash import *
 from discord_components.button import Button, ButtonStyle
 
 TIME_CONST = 10
-
+guild_ids = [382597973084995584]
 
 def read_token():
     with open("token.txt", "r") as f:
@@ -18,6 +19,7 @@ def read_token():
 
 token = read_token()
 client = commands.Bot(command_prefix='!')
+slash = SlashCommand(client, sync_commands=True)
 ddb = DiscordComponents(client)
 
 
@@ -80,10 +82,49 @@ async def post_button(ctx):
 @client.command()
 async def news(ctx, *, arg):
     try:
-        await ctx.reply('Here is the news : ' + news_api.getnews(arg), mention_author=False)
+        await ctx.reply('Here is the news : ' + await news_api.getnews(arg), mention_author=False)
     except IndexError:
         bot_msg = await ctx.reply(
             r"Sorry no news have been found for this given subject ¯\_(ツ)_/¯", mention_author=False)
+        await wait_and_delete_msgs(ctx, bot_msg)
+
+
+@slash.slash(name="GetNews", description="Returns news on a given topic", guild_ids=guild_ids)
+async def GetNews(ctx, *, subjects):
+    try:
+        news = await news_api.getnews(subjects)
+        await ctx.send('Here is the news : ' + news)
+    except IndexError:
+        bot_msg = await ctx.send(
+            r"Sorry no news have been found for this given subject ¯\_(ツ)_/¯")
+        await wait_and_delete_msgs(ctx, bot_msg)
+
+
+@slash.slash(name="GetHentai", description="Returns hentai on a given topic", guild_ids=guild_ids)
+async def GetHentai(ctx, *tags):
+    if ctx.channel.nsfw:
+        print(tags)
+        await ctx.send("\u200b")
+        sauce = await nsfw_api.get_hentai(tags)
+        if sauce == "None":
+            embed_var = discord.Embed(title="Unfortunately no NSFW sauce have been found",
+                                    description=f"The following research tags : {', '.join(map(str, tags))} didn't correspond to any any NSFW image from [gelbooru.com](https://gelbooru.com)",
+                                    color=0xff99e0)
+            embed_var.add_field(name="Requested by", value=f"{ctx.author.mention}", inline=False)
+            await ctx.channel.send(embed=embed_var)
+        else:
+            embed_var = discord.Embed(title="THE HOLY REQUESTED SAUCE",
+                                    description=f"[Source]({sauce}) image taken from [gelbooru.com](https://gelbooru.com)",
+                                    color=0xff99e0)
+            embed_var.add_field(name="**TAGS**", value=f"*{', '.join(map(str, tags))}*".upper(), inline=False)
+            embed_var.add_field(name="**REQUESTED BY**", value=f"{ctx.author.mention}", inline=False)
+            embed_var.set_image(url=sauce)    
+            if "mp4" in sauce or "mov" in sauce or "avi" in sauce or "mkv" in sauce:
+                await ctx.channel.send(sauce)
+            else:
+                await ctx.channel.send(embed=embed_var)
+    else:
+        bot_msg = await ctx.send('Sorry this is not an NSFW channel')
         await wait_and_delete_msgs(ctx, bot_msg)
 
 
@@ -92,14 +133,23 @@ async def hentai(ctx, *args):
     if ctx.channel.nsfw:
         print(args)
         sauce = await nsfw_api.get_hentai(args)
-        embed_var = discord.Embed(title="The holy requested sauce",
-                                  description=f"[Source]({sauce}) image taken from [gelbooru.com](https://gelbooru.com)",
-                                  color=0xff99e0)
-        embed_var.add_field(name="Requested by", value=f"{ctx.message.author}", inline=False)
-        embed_var.set_image(url=sauce)
-        await ctx.channel.send(embed=embed_var)
-        if "mp4" in sauce or "mov" in sauce or "avi" in sauce or "mkv" in sauce:
-            await ctx.channel.send(f"{sauce}")
+        if sauce == "None":
+            embed_var = discord.Embed(title="Unfortunately no NSFW sauce have been found",
+                                    description=f"The following research tags : {', '.join(map(str, args))} didn't correspond to any any NSFW image from [gelbooru.com](https://gelbooru.com)",
+                                    color=0xff99e0)
+            embed_var.add_field(name="Requested by", value=f"{ctx.message.author.mention}", inline=False)
+            bot_msg = await ctx.reply(embed=embed_var)
+            await wait_and_delete_msgs(ctx, bot_msg)
+        else:
+            embed_var = discord.Embed(title="THE HOLY REQUESTED SAUCE",
+                                    description=f"[Source]({sauce}) image taken from [gelbooru.com](https://gelbooru.com)",
+                                    color=0xff99e0)
+            embed_var.add_field(name="**TAGS**", value=f"*{', '.join(map(str, args))}*".upper(), inline=False)
+            embed_var.add_field(name="**REQUESTED BY**", value=f"{ctx.message.author.mention}", inline=False)
+            embed_var.set_image(url=sauce)
+            await ctx.reply(embed=embed_var)
+            if "mp4" in sauce or "mov" in sauce or "avi" in sauce or "mkv" in sauce:
+                await ctx.channel.send(f"{sauce}")
     else:
         bot_msg = await ctx.reply('Sorry this is not an NSFW channel', mention_author=False)
         await wait_and_delete_msgs(ctx, bot_msg)
@@ -142,7 +192,7 @@ async def clear(ctx, member: discord.Member, arg2=1):
         if message.author.id == member.id and int(counter) < int(number_of_msgs):
             counter += 1
             await message.delete()
-    bot_msg = await ctx.channel.send(f'{str(counter)} Messages from {member.display_name} have been deleted')
+    bot_msg = await ctx.channel.send(f'{str(counter)} Messages from {member.display_name.mention} have been deleted')
     await wait_and_delete_msgs(ctx, bot_msg)
 
 
@@ -228,6 +278,5 @@ async def on_ready():
     print('------------------')
     await client.change_presence(activity=discord.Game(name="rule over the world"))
     asyncio.run(await membership_admission_button())
-
 
 client.run(token)

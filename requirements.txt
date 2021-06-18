@@ -3,3 +3,5 @@ discord.py
 GoogleNews
 pygelbooru
 discord_components
+async_timeout
+discord-py-slash-command

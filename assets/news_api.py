@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import random
 
 
-def getnews(subject):
+async def getnews(subject):
     googlenews = GoogleNews(lang='en')
     current_date = date.today()
     date_string = current_date.strftime("%m/%d/%Y")
