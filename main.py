@@ -1,3 +1,4 @@
+from random import randint, choice
 import discord
 from discord.ext import commands
 import asyncio
@@ -6,10 +7,28 @@ from assets import news_api, nsfw_api
 from discord_components import *
 from discord.utils import get
 from discord_slash import *
+from discord_slash.utils.manage_commands import create_option
 from discord_components.button import Button, ButtonStyle
 
 TIME_CONST = 10
 guild_ids = [382597973084995584]
+cycle_status = ["/d help",
+"helping Nycteis",
+"ruling over the world",
+"eating doritos",
+"beep boop",
+"who says that i'm a bot ?",
+"awaken my masters",
+"is this a jojo reference ?",
+"finally alive!",
+"with you",
+"having a great time",
+"trying to gain consciousness",
+"become MONKE",
+"monke flip",
+"where were you when phone rang ?",]
+
+
 
 def read_token():
     with open("token.txt", "r") as f:
@@ -89,8 +108,114 @@ async def news(ctx, *, arg):
         await wait_and_delete_msgs(ctx, bot_msg)
 
 
-@slash.slash(name="GetNews", description="Returns news on a given topic", guild_ids=guild_ids)
+@slash.slash(name="ppic",
+description="Returns someone's profile picture if no argument give returns command caller's one",
+options=[
+    create_option(
+        name="member",
+        description="Targeted member",
+        option_type=6,
+        required=False)],
+guild_ids=guild_ids)
+async def ppic(ctx, member: discord.Member="None"):
+    if member=="None":
+        member = ctx.author
+    user = await client.fetch_user(f"{member.id}")
+    embed_var = discord.Embed(title=f"**{member.name}**'s profile picture",
+                                color=0x36393f)
+    embed_var.add_field(name="**REQUESTED BY**", value=f"{ctx.author.mention}", inline=False)
+    embed_var.set_image(url=user.avatar_url)    
+    await ctx.send(embed=embed_var)
+
+
+@slash.slash(name="wisdom",
+description="Returns wisdom",
+options=[
+    create_option(
+        name="question",
+        description="Ask-something",
+        option_type=3,
+        required=True)],
+guild_ids=guild_ids)
+async def wisdom(ctx, wisdom):
+    
+    embed_var = discord.Embed(title=f"A PIECE OF WISDOM",
+                                color=0x36393f)
+    answer = randint(0,2)
+    if answer == 0:
+        answer = "Yes"
+    else:
+        answer = "No"
+    embed_var.add_field(name="**ANSWER**", value=f"{answer}", inline=False)
+    embed_var.add_field(name="**REQUESTED BY**", value=f"{ctx.author.mention}", inline=False)
+    await ctx.send(embed=embed_var)
+
+
+slap_gif_list=["https://cdn.discordapp.com/attachments/855589288941846559/855589315073933332/tumblr_lpljfuBenD1qi7edx540.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855589315319693313/tenor.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855589318832029696/BQM6jEZ-UJLgGUuvrNkYUFk2Ae92E1tAeAfjk_pGLpKnHfWiikue5-m1fMe8_1TjRXlLKNwbrQTs1EfUN5ol3A.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855589477854347273/KgNVtUF.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855589699665002536/LegalExhaustedEuropeanpolecat-size_restricted.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855591599978184724/2mqv.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855591613695131648/o2SJYUS.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855591632795074560/46b0a213e3ea1a9c6fcc060af6843a0e.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855591675485356052/fe39cfc3be04e3cbd7ffdcabb2e1837b.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855591684086824960/tumblr_22bf30fb391795063b362e75d044f171_c33225a1_1280.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855593776020979712/68de679cc20000570e8a7d9ed9218cd3.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855593817041403924/9Ky6.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855593824012206080/4afb2c9b1d06035d64db1a93ae78a16f.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855593829498093588/anime-slap-gif-20.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855593843553861632/OrneryFilthyArthropods-max-1mb.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855593844866416671/e83.gif",
+"https://cdn.discordapp.com/attachments/855589288941846559/855593846804578304/Agwwaj6.gif"]
+
+hug_gif_list=["https://cdn.discordapp.com/attachments/855595167707562055/855598055549829141/1.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598065938857994/5.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598070007595018/9.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598071446896650/3.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598074423803944/2.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598075316797440/12.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598077716725760/4.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598083941597184/6.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598091766726736/11.gif",
+"https://cdn.discordapp.com/attachments/855595167707562055/855598097290625034/10.gif",
+]
+@slash.slash(name="slap",
+description="Slap someone",
+options=[
+    create_option(
+        name="member",
+        description="Targeted member",
+        option_type=6,
+        required=True)],
+guild_ids=guild_ids)
+async def slap(ctx, member: discord.Member):
+    user = await client.fetch_user(f"{member.id}")
+    embed_var = discord.Embed(title=f"**{ctx.author.name}** slaps **{member.name}**",description="Ouch... It hurts!",
+                                color=0x36393f)
+    embed_var.set_image(url=f"{choice(slap_gif_list)}")    
+    await ctx.send(embed=embed_var)
+
+@slash.slash(name="hug",
+description="Hug someone",
+options=[
+    create_option(
+        name="member",
+        description="Targeted member",
+        option_type=6,
+        required=True)],
+guild_ids=guild_ids)
+async def slap(ctx, member: discord.Member):
+    user = await client.fetch_user(f"{member.id}")
+    embed_var = discord.Embed(title=f"**{ctx.author.name}** hugs **{member.name}**",description="Awwww, how cute! 😍",
+                                color=0x36393f)
+    embed_var.set_image(url=f"{choice(hug_gif_list)}")    
+    await ctx.send(embed=embed_var)
+
+
+@slash.slash(name="news", description="Returns news on a given topic", guild_ids=guild_ids)
 async def GetNews(ctx, *, subjects):
+    await ctx.defer()
     try:
         news = await news_api.getnews(subjects)
         await ctx.send('Here is the news : ' + news)
@@ -99,19 +224,33 @@ async def GetNews(ctx, *, subjects):
             r"Sorry no news have been found for this given subject ¯\_(ツ)_/¯")
         await wait_and_delete_msgs(ctx, bot_msg)
 
+@slash.slash(name="Help", description="Returns all available commands", guild_ids=guild_ids)
+async def help(ctx):
+    embed=discord.Embed(title="✧═════•**COMMANDS LIST**•═════✧", description="If you want to **interact** with the **bot**, here are the **commands**.\n You must **keep** the **correct syntax** of the **command** for it to **work properly**", color=0x2f3136)
+    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/848876190596071434/853409759918948382/6243-blurple-slashcommands.png")
+    embed.add_field(name="NEWS COMMAND", value="*Return news on a given topic*\n**Usage** :\n ```/news topic```", inline=False)
+    embed.add_field(name="HENTAI COMMAND", value="*Return a [gelbooru](https://gelbooru.com/) image on a given character or anime\n for the **command** to **work properly**, please **replace** any **space** in the **anime or character name** by an **underscore** like following : **_***\n**Usage** :\n ```/hentai characterName```\n```/hentai animeName```\n```/hentai characterName_(animeName)```\n", inline=True)
+    embed.add_field(name="HUG COMMAND", value="*Hugs someone*\n**Usage** :\n ```/hug @mention```", inline=False)
+    embed.add_field(name="SLAP COMMAND", value="*Slaps someone*\n**Usage** :\n ```/slap @mention```", inline=False)
+    embed.add_field(name="WISDOM COMMAND", value="*Gives wisdom*\n**Usage** :\n ```/wisdom question```", inline=False)
+    embed.add_field(name="PROFILE PIC COMMAND", value="*Returns someone's profile picture\n or the command caller's one if no user provided*\n**Usage** :\n ```/ppic @mention```", inline=False)
+    await ctx.send(embed=embed)
 
-@slash.slash(name="GetHentai", description="Returns hentai on a given topic", guild_ids=guild_ids)
-async def GetHentai(ctx, *tags):
+@slash.slash(name="hentai", description="Returns hentai on a given topic", guild_ids=guild_ids)
+async def GetHentai(ctx, tags):
     if ctx.channel.nsfw:
         print(tags)
-        await ctx.send("\u200b")
+        tags = tags.split(" ")
+        print(tags)
+        await ctx.defer()
         sauce = await nsfw_api.get_hentai(tags)
         if sauce == "None":
             embed_var = discord.Embed(title="Unfortunately no NSFW sauce have been found",
                                     description=f"The following research tags : {', '.join(map(str, tags))} didn't correspond to any any NSFW image from [gelbooru.com](https://gelbooru.com)",
                                     color=0xff99e0)
             embed_var.add_field(name="Requested by", value=f"{ctx.author.mention}", inline=False)
-            await ctx.channel.send(embed=embed_var)
+            bot_msg = await ctx.send(embed=embed_var)
+            await wait_and_delete_msgs(ctx, bot_msg)
         else:
             embed_var = discord.Embed(title="THE HOLY REQUESTED SAUCE",
                                     description=f"[Source]({sauce}) image taken from [gelbooru.com](https://gelbooru.com)",
@@ -120,9 +259,15 @@ async def GetHentai(ctx, *tags):
             embed_var.add_field(name="**REQUESTED BY**", value=f"{ctx.author.mention}", inline=False)
             embed_var.set_image(url=sauce)    
             if "mp4" in sauce or "mov" in sauce or "avi" in sauce or "mkv" in sauce:
-                await ctx.channel.send(sauce)
+                embed_var = discord.Embed(title="THE HOLY REQUESTED SAUCE",
+                                    description=f"[Source]({sauce}) image taken from [gelbooru.com](https://gelbooru.com)",
+                                    color=0xff99e0)
+                embed_var.add_field(name="**TAGS**", value=f"*{', '.join(map(str, tags))}*".upper(), inline=False)
+                embed_var.add_field(name="**REQUESTED BY**", value=f"{ctx.author.mention}", inline=False) 
+                await ctx.send(embed=embed_var)  
+                await ctx.send(sauce)
             else:
-                await ctx.channel.send(embed=embed_var)
+                await ctx.send(embed=embed_var)
     else:
         bot_msg = await ctx.send('Sorry this is not an NSFW channel')
         await wait_and_delete_msgs(ctx, bot_msg)
@@ -268,6 +413,11 @@ async def membership_admission_button():
                     content=f"Congratulations <a:zero_two:853224128412123136> you are now a verified member of {guild.name} <a:check_ravena:853332159564349491>"
                 )
 
+async def cycle_presence():
+    while True:
+        await asyncio.sleep(20)
+        await client.change_presence(activity=discord.Game(name=f"{choice(cycle_status)}"))
+
 
 @client.event
 async def on_ready():
@@ -276,7 +426,8 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------------------')
-    await client.change_presence(activity=discord.Game(name="rule over the world"))
-    asyncio.run(await membership_admission_button())
+    await client.change_presence(activity=discord.Game(name=f"{choice(cycle_status)}"))
+    client.loop.create_task(cycle_presence())
+    client.loop.create_task(membership_admission_button())
 
 client.run(token)
