@@ -1,17 +1,11 @@
-from random import randint, choice
+from random import *
 import discord
-from discord.embeds import Embed
-import requests
-from discord.ext import commands, tasks
+from discord.ext import commands
 import asyncio
 from discord.ext.commands import *
-from assets import news_api, nsfw_api
 from discord_components import *
-import mal
-from discord.utils import get
 from discord_slash import *
 from discord_slash.utils.manage_commands import create_option
-from discord_components.button import Button, ButtonStyle
 
 
 guild_ids = [382597973084995584]
@@ -88,70 +82,6 @@ async def post_reward(ctx):
     embed.add_field(name="✧════════•𝐂𝐎𝐋𝐎𝐑 𝐑𝐎𝐋𝐄𝐒•══════════✧", value=f" 𝑪𝒐𝒍𝒐𝒓 𝑹𝒐𝒍𝒆𝒔 : \n- React with ⌠ :yellow_heart:  ⌡ to obtain the colour {gold} \n- React with ⌠ :purple_heart:  ⌡ to obtain the colour {lavender} \n- React with ⌠ :green_heart:  ⌡ to obtain the colour {mint_green} \n- React with ⌠ :green_circle:  ⌡ to obtain the colour {reef} \n- React with ⌠ :purple_circle:  ⌡ to obtain the colour {heliotrope}", inline=False)
     embed.set_footer(text="✧══════════════════════════════════✧")
     await ctx.send(embed=embed)
-
-
-@slash.slash(name="animetst",
-description="Returns info on a given anime",
-options=[
-    create_option(
-        name="anime",
-        description="Targeted anime",
-        option_type=3,
-        required=True)],
-guild_ids=guild_ids)
-async def anime(ctx, anime):
-    await ctx.defer()
-    try:
-        search = mal.AnimeSearch(f"{anime}")
-        result = search.results[0]
-        result = mal.Anime(result.mal_id)
-        embed_var=discord.Embed(title=f"{(result.title).upper()}", description=f"**[INFO]({result.url})** TAKEN FROM **[MYANIMELIST](https://myanimelist.net/)**", color=0xff7575)
-        embed_var.set_thumbnail(url=f"{result.image_url}")
-        embed_var.add_field(name="**Score**", value=f"{result.score}/10", inline=True)
-        embed_var.add_field(name="**Rank**", value=f"#{result.rank}", inline=True)
-        embed_var.add_field(name="**Popularity**", value=f"#{result.popularity}", inline=True)
-        embed_var.add_field(name="**Status**", value=f"{result.status}", inline=True)
-        embed_var.add_field(name="**Episodes**", value=f"{result.episodes}", inline=True)
-        embed_var.add_field(name="**Aired**", value=f"{result.aired}", inline=False)
-        embed_var.set_footer(text=f"Genres: {', '.join(result.genres)}")
-        await ctx.send(embed=embed_var)
-    except:
-        await ctx.send(f'Sorry im kinda dumb so i did not find any result for " {anime} "')
-
-
-@slash.slash(name="rolldicetst",
-description="Rolls a dice",
-options=[
-    create_option(
-        name="dice_count",
-        description="Number of dice that will be rolled",
-        option_type=4,
-        required=True),
-    create_option(
-        name="face_count",
-        description="Number of faces that the dice have",
-        option_type=4,
-        required=True)],
-guild_ids=guild_ids)
-async def rolldice(ctx, dice_count, face_count=6):
-    if dice_count > 16 or face_count > 64:
-        await ctx.send("Sorry the number of dice or face was too powerfull for me to handle !")
-        return
-    answ = []
-    for i in range(0, dice_count):
-        answ.append(randint(1, face_count))
-    
-    if dice_count == 1:
-        embed_var = discord.Embed(title=f"**{(ctx.author.name).upper()}** ROLLED A {face_count} FACED DICE ! 🎲",description=f"IT LANDED ON **{answ}** !",
-                                    color=0xff915e)
-    else:
-        embed_var = discord.Embed(title=f"**{(ctx.author.name).upper()}** ROLLED {dice_count} DICE WITH {face_count} FACE EACH ! 🎲",description=f"",
-                                    color=0xff915e)
-        e = 1
-        for ans in answ:
-            embed_var.add_field(name=f"Dice number {e}",value=f"Landed on **{answ[e-1]}** !")
-            e += 1
-    await ctx.send(embed=embed_var)
 
 
 @client.event
