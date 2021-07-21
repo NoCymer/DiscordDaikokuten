@@ -39,7 +39,15 @@ usd = {}
 gbp = {}
 eur = {}
 crypto_value = {}
-
+CRYPTO_LIST=["bitcoin","ethereum","tether","dogecoin","litecoin"]
+CRYPTO_LOGO={
+    "bitcoin":"https://cdn.discordapp.com/attachments/862133730226995210/862134772738424832/2000px-BTC_Logo.svg.png",
+    "ethereum":"https://cdn.discordapp.com/attachments/862133730226995210/862154715348205588/21-218069_blockchains-contracts-classic-blockchain-organisations-ethereum-logo-png.png",
+    "tether":"https://cdn.discordapp.com/attachments/862133730226995210/862155797235761202/tether-usdt-logo.png",
+    "dogecoin":"https://cdn.discordapp.com/attachments/862133730226995210/862154713989906463/dogecoin-logo-vector.png",
+    "litecoin":"https://cdn.discordapp.com/attachments/862133730226995210/862155332720787466/download.png"}
+CHANGE_TIMES=["1h","24h","7d"]
+SUPPORTED_CURRENCY=["USD","GBP","EUR"]
 
 def get_crypto_value():
     global usd
@@ -49,28 +57,16 @@ def get_crypto_value():
     global crypto_value
     if last_updated + datetime.timedelta(hours=1) <= datetime.datetime.now() :
         last_updated = datetime.datetime.now()
-        response = requests.get('https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&ids=ethereum%2Cbitcoin%2Clitecoin%2Cdogecoin%2Ctether&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d').json()
-        eur["bitcoin"] = response[0]
-        eur["ethereum"] = response[1]
-        eur["tether"] = response[2]
-        eur["dogecoin"] = response[3]
-        eur["litecoin"] = response[4]
+        for currency in SUPPORTED_CURRENCY:
+            response = requests.get(f'https://api.coingecko.com/api/v3/coins/markets?vs_currency={currency.lower()}&ids=ethereum%2Cbitcoin%2Clitecoin%2Cdogecoin%2Ctether&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d').json()
+            i=0
+            for crypto in CRYPTO_LIST:
+                if currency == "USD": usd[crypto] = response[i]
+                if currency == "GBP": gbp[crypto] = response[i]
+                if currency == "EUR": eur[crypto] = response[i]
+                i += 1
         crypto_value["EUR"] = eur
-
-        response = requests.get('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum%2Cbitcoin%2Clitecoin%2Cdogecoin%2Ctether&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d').json()
-        usd["bitcoin"] = response[0]
-        usd["ethereum"] = response[1]
-        usd["tether"] = response[2]
-        usd["dogecoin"] = response[3]
-        usd["litecoin"] = response[4]
         crypto_value["USD"] = usd
-
-        response = requests.get('https://api.coingecko.com/api/v3/coins/markets?vs_currency=gbp&ids=ethereum%2Cbitcoin%2Clitecoin%2Cdogecoin%2Ctether&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d').json()
-        gbp["bitcoin"] = response[0]
-        gbp["ethereum"] = response[1]
-        gbp["tether"] = response[2]
-        gbp["dogecoin"] = response[3]
-        gbp["litecoin"] = response[4]
         crypto_value["GBP"] = gbp
 
 def read_token():
@@ -97,8 +93,8 @@ async def wait_and_delete_msgs(ctx, bot_msg):
         pass
 
 
-@slash.slash(name="crypto",
-description="Gives a choosen crypto actual value",
+@slash.slash(name="cryptos",
+description="Gives the actual value of a choosen cryptocurrency",
 guild_ids=guild_ids,
 options=[
     create_option(
@@ -138,99 +134,47 @@ async def crypto(ctx, cryptocurrency: str):
     get_crypto_value()
     embed_var = discord.Embed(title=f"{cryptocurrency.upper()} ACTUAL VALUE", description="Powered by [CoinGecko](https://coingecko.com)",
                                 color=0xf79413)
-    if cryptocurrency == "dogecoin":
-        embed_var.set_thumbnail(url="https://cdn.discordapp.com/attachments/862133730226995210/862154713989906463/dogecoin-logo-vector.png")
-    elif cryptocurrency == "bitcoin":
-        embed_var.set_thumbnail(url="https://cdn.discordapp.com/attachments/862133730226995210/862134772738424832/2000px-BTC_Logo.svg.png")
-    elif cryptocurrency == "ethereum":
-        embed_var.set_thumbnail(url="https://cdn.discordapp.com/attachments/862133730226995210/862154715348205588/21-218069_blockchains-contracts-classic-blockchain-organisations-ethereum-logo-png.png")
-    elif cryptocurrency == "litecoin":
-        embed_var.set_thumbnail(url="https://cdn.discordapp.com/attachments/862133730226995210/862155332720787466/download.png")
-    elif cryptocurrency == "tether":
-        embed_var.set_thumbnail(url="https://cdn.discordapp.com/attachments/862133730226995210/862155797235761202/tether-usdt-logo.png")
+    if cryptocurrency.lower() in CRYPTO_LIST:
+        embed_var.set_thumbnail(url=f"{CRYPTO_LOGO[cryptocurrency.lower()]}")
     else:
         ctx.send(f"Sorry ¯\(°_o)/¯ i do not have any information on this cryptocurrency called : {cryptocurrency}")
         return
+
     up_arrow = client.get_emoji(862159357155344395)
     down_arrow = client.get_emoji(862159357429284904)
-    usd_emoji = ""
-    usd_sign = ""
-    gbp_emoji = ""
-    gbp_sign = ""
-    eur_emoji = ""
-    eur_sign = ""
-    if crypto_value['USD'][f'{cryptocurrency}']['price_change_percentage_24h_in_currency'] > 0:
-        usd_emoji = f"{up_arrow}"
-        usd_sign ="+"
-    else:
-        usd_emoji = f"{down_arrow}"
-        usd_sign =""
-    if crypto_value['GBP'][f'{cryptocurrency}']['price_change_percentage_24h_in_currency'] > 0:
-        gbp_emoji = f"{up_arrow}"
-        gbp_sign ="+"
-    else:
-        gbp_emoji = f"{down_arrow}"
-        gbp_sign =""
-    if crypto_value['EUR'][f'{cryptocurrency}']['price_change_percentage_24h_in_currency'] > 0:
-        eur_emoji = f"{up_arrow}"
-        eur_sign ="+"
-    else:
-        eur_emoji = f"{down_arrow}"
-        eur_sign =""
-    usd_value = f"**Value** : *{crypto_value['USD'][f'{cryptocurrency}']['current_price']:,}* $ \n"
-    gbp_value = f"**Value** : *{crypto_value['GBP'][f'{cryptocurrency}']['current_price']:,}* £ \n"
-    eur_value = f"**Value** : *{crypto_value['EUR'][f'{cryptocurrency}']['current_price']:,}* € \n"
-    usd_change_1D = f"**1 Day** \u200B:   {usd_emoji} {usd_sign}{round(crypto_value['USD'][f'{cryptocurrency}']['price_change_percentage_24h_in_currency'],2):,}%\n"
-    gbp_change_1D = f"**1 Day** \u200B:   {gbp_emoji} {gbp_sign}{round(crypto_value['GBP'][f'{cryptocurrency}']['price_change_percentage_24h_in_currency'],2):,}%\n"
-    eur_change_1D = f"**1 Day** \u200B:   {eur_emoji} {eur_sign}{round(crypto_value['EUR'][f'{cryptocurrency}']['price_change_percentage_24h_in_currency'],2):,}%\n"
-    if crypto_value['USD'][f'{cryptocurrency}']['price_change_percentage_1h_in_currency'] > 0:
-        usd_emoji = f"{up_arrow}"
-        usd_sign ="+"
-    else:
-        usd_emoji = f"{down_arrow}"
-        usd_sign =""
-    if crypto_value['GBP'][f'{cryptocurrency}']['price_change_percentage_1h_in_currency'] > 0:
-        gbp_emoji = f"{up_arrow}"
-        gbp_sign ="+"
-    else:
-        gbp_emoji = f"{down_arrow}"
-        gbp_sign =""
-    if crypto_value['EUR'][f'{cryptocurrency}']['price_change_percentage_1h_in_currency'] > 0:
-        eur_emoji = f"{up_arrow}"
-        eur_sign ="+"
-    else:
-        eur_emoji = f"{down_arrow}"
-        eur_sign =""
-    usd_change_1H = f"**1 Hour** : {usd_emoji} {usd_sign}{round(crypto_value['USD'][f'{cryptocurrency}']['price_change_percentage_1h_in_currency'],2):,}%\n"
-    gbp_change_1H = f"**1 Hour** : {gbp_emoji} {gbp_sign}{round(crypto_value['GBP'][f'{cryptocurrency}']['price_change_percentage_1h_in_currency'],2):,}%\n"
-    eur_change_1H = f"**1 Hour** : {eur_emoji} {eur_sign}{round(crypto_value['EUR'][f'{cryptocurrency}']['price_change_percentage_1h_in_currency'],2):,}%\n"
-    if crypto_value['USD'][f'{cryptocurrency}']['price_change_percentage_7d_in_currency'] > 0:
-        usd_emoji = f"{up_arrow}"
-        usd_sign ="+"
-    else:
-        usd_emoji = f"{down_arrow}"
-        usd_sign =""
-    if crypto_value['GBP'][f'{cryptocurrency}']['price_change_percentage_7d_in_currency'] > 0:
-        gbp_emoji = f"{up_arrow}"
-        gbp_sign ="+"
-    else:
-        gbp_emoji = f"{down_arrow}"
-        gbp_sign =""
-    if crypto_value['EUR'][f'{cryptocurrency}']['price_change_percentage_7d_in_currency'] > 0:
-        eur_emoji = f"{up_arrow}"
-        eur_sign ="+"
-    else:
-        eur_emoji = f"{down_arrow}"
-        eur_sign =""
-    usd_change_7D = f"**7 days** : {usd_emoji} {usd_sign}{round(crypto_value['USD'][f'{cryptocurrency}']['price_change_percentage_7d_in_currency'],2):,}%\n"
-    gbp_change_7D = f"**7 days** : {gbp_emoji} {gbp_sign}{round(crypto_value['GBP'][f'{cryptocurrency}']['price_change_percentage_7d_in_currency'],2):,}%\n"
-    eur_change_7D = f"**7 days** : {eur_emoji} {eur_sign}{round(crypto_value['EUR'][f'{cryptocurrency}']['price_change_percentage_7d_in_currency'],2):,}%\n"
-    usd_field_val = f"{usd_value}{usd_change_1H}{usd_change_1D}{usd_change_7D}"
-    gbp_field_val = f"{gbp_value}{gbp_change_1H}{gbp_change_1D}{gbp_change_7D}"
-    eur_field_val = f"{eur_value}{eur_change_1H}{eur_change_1D}{eur_change_7D}"
-    embed_var.add_field(name=f"**USD**",value= usd_field_val,inline=False)
-    embed_var.add_field(name=f"**GBP**",value= gbp_field_val,inline=False)
-    embed_var.add_field(name=f"**EUR**",value= eur_field_val,inline=False)
+    usd_str = ""
+    gbp_str = ""
+    eur_str = ""
+    for change_time in CHANGE_TIMES:
+        for currency in SUPPORTED_CURRENCY:
+            if crypto_value[currency][f'{cryptocurrency}'][f'price_change_percentage_{change_time}_in_currency'] > 0:
+                emoji = f"{up_arrow}"
+                sign ="+"
+            else:
+                emoji = f"{down_arrow}"
+                sign =""
+            usd_str = f"{emoji} {sign}{round(crypto_value[currency][f'{cryptocurrency}'][f'price_change_percentage_{change_time}_in_currency'],2):,}%\n" if currency == "USD" else usd_str
+            gbp_str = f"{emoji} {sign}{round(crypto_value[currency][f'{cryptocurrency}'][f'price_change_percentage_{change_time}_in_currency'],2):,}%\n" if currency == "GBP" else gbp_str
+            eur_str = f"{emoji} {sign}{round(crypto_value[currency][f'{cryptocurrency}'][f'price_change_percentage_{change_time}_in_currency'],2):,}%\n" if currency == "EUR" else eur_str
+        if change_time == "1h":
+            usd_change_1H = f"**1 Hour** : {usd_str}"
+            gbp_change_1H = f"**1 Hour** : {gbp_str}"
+            eur_change_1H = f"**1 Hour** : {eur_str}"
+        elif change_time == "24h":
+            usd_change_1D = f"**1 Day** :  {usd_str}"
+            gbp_change_1D = f"**1 Day** :  {gbp_str}"
+            eur_change_1D = f"**1 Day** :  {eur_str}"
+        elif change_time == "7d":
+            usd_change_7D = f"**7 days** : {usd_str}"
+            gbp_change_7D = f"**7 days** : {gbp_str}"
+            eur_change_7D = f"**7 days** : {eur_str}"
+        usd_value = f"**Value** : *{crypto_value['USD'][f'{cryptocurrency}']['current_price']:,}* $ \n"
+        gbp_value = f"**Value** : *{crypto_value['GBP'][f'{cryptocurrency}']['current_price']:,}* £ \n"
+        eur_value = f"**Value** : *{crypto_value['EUR'][f'{cryptocurrency}']['current_price']:,}* € \n"
+
+    embed_var.add_field(name=f"**USD**",value= f"{usd_value}{usd_change_1H}{usd_change_1D}{usd_change_7D}",inline=False)
+    embed_var.add_field(name=f"**GBP**",value= f"{gbp_value}{gbp_change_1H}{gbp_change_1D}{gbp_change_7D}",inline=False)
+    embed_var.add_field(name=f"**EUR**",value= f"{eur_value}{eur_change_1H}{eur_change_1D}{eur_change_7D}",inline=False)
     embed_var.set_footer(text=f"Last updated: {crypto_value['EUR'][f'{cryptocurrency}']['last_updated']}")
     await ctx.send(embed=embed_var)
 
@@ -326,10 +270,7 @@ options=[
         required=True)],
 guild_ids=guild_ids)
 async def wisdom(ctx,display: str, question: str):
-    if display =="n":
-        wisdom = f"{ctx.author.name} was too shy to show to everyone his/her question"
-    else:
-        wisdom =f"{ctx.author.name} asked: {question.capitalize()}"
+    wisdom = f"{ctx.author.name} was too shy to show to everyone his/her question" if display =="n" else f"{ctx.author.name} asked: {question.capitalize()}"
     embed_var = discord.Embed(title=f"A PIECE OF WISDOM",description=f"{wisdom}",
                                 color=0x36393f)
     answer = randint(0,1)
@@ -352,7 +293,6 @@ options=[
         required=True)],
 guild_ids=guild_ids)
 async def slap(ctx, member: discord.Member):
-    user = await client.fetch_user(f"{member.id}")
     total_line_count = 0
     with open("assets/resources/shot_gif_list.txt", encoding="utf8") as text:
         for line in text:
@@ -387,7 +327,6 @@ options=[
         required=True)],
 guild_ids=guild_ids)
 async def slap(ctx, member: discord.Member):
-    user = await client.fetch_user(f"{member.id}")
     total_line_count = 0
     with open("assets/resources/slap_gif_list.txt", encoding="utf8") as text:
         for line in text:
@@ -422,7 +361,6 @@ options=[
         required=True)],
 guild_ids=guild_ids)
 async def kiss(ctx, member: discord.Member):
-    user = await client.fetch_user(f"{member.id}")
     total_line_count = 0
     random_line = ""
     with open("assets/resources/kiss_gif_list.txt", encoding="utf8") as text:
@@ -458,7 +396,6 @@ options=[
         required=True)],
 guild_ids=guild_ids)
 async def slap(ctx, member: discord.Member):
-    user = await client.fetch_user(f"{member.id}")
     total_line_count = 0
     with open("assets/resources/hug_gif_list.txt", encoding="utf8") as text:
         for line in text:
@@ -510,11 +447,7 @@ async def quote(ctx):
 description="Flips a coin",
 guild_ids=guild_ids)
 async def flipcoin(ctx):
-    answ = ""
-    if randint(0, 1) == 0:
-        answ = "HEADS"
-    else:
-        answ = "TAILS"
+    answ = "HEADS" if randint(0, 1) == 0 else "TAILS"
     embed_var = discord.Embed(title=f"**{ctx.author.name}** flipped a coin ! 🍀",description=f"Guess what ? It landed on **{answ}** !",
                                 color=0x36393f)
     await ctx.send(embed=embed_var)
