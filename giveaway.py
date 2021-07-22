@@ -26,11 +26,9 @@ async def fetch_guild():
     global giveaway_manager
     guild = await client.fetch_guild(382597973084995584)
 
-    
 
 @commands.has_permissions(kick_members=True)
 @client.command()
-#, channel: discord.TextChannel, giveaway_price, timestamp, *requirements
 async def start_giveaway(ctx):
     def check(msg):
         return msg.author.id == ctx.author.id and msg.channel.id == ctx.channel.id
@@ -55,33 +53,35 @@ async def start_giveaway(ctx):
 
     await ctx.send("How long will the giveaway last ? please use (1month or 1day or 1hr or 1min)")
     giveaway_date = await client.wait_for('message', check = check)
-    d="0"
-    h="0"
-    mn="0"
+    d = "0"
+    h = "0"
+    mn = "0"
     if "day" in giveaway_date.content:
-        d=""
+        d = ""
         for char in giveaway_date.content:
             if char not in list(string.ascii_lowercase):
                 d += char
     elif "hr" in giveaway_date.content:
-        h=""
+        h = ""
         for char in giveaway_date.content:
             if char not in list(string.ascii_lowercase):
                 h += char
     elif "min" in giveaway_date.content:
-        mn=""
+        mn = ""
         for char in giveaway_date.content:
             if char not in list(string.ascii_lowercase):
                 mn += char
     print(f"d:{d}")
     print(f"h:{h}")
     print(f"mn:{mn}")
-    d=int(d)
-    h=int(h)
-    mn=int(mn)   
+    d = int(d)
+    h = int(h)
+    mn = int(mn)
     giveaway_date = datetime.datetime.now() + datetime.timedelta(days=d, hours=h, minutes=mn)
 
-    embed = discord.Embed(title=f"🎉 {str(giveaway_price.content).lower().capitalize()} Giveaway! 🎉", description=f"{str(giveaway_description.content).lower().capitalize()} \n React with 🎉 to join the giveaway")
+    embed = discord.Embed(
+        title=f"🎉 {str(giveaway_price.content).lower().capitalize()} Giveaway! 🎉",
+        description=f"{str(giveaway_description.content).lower().capitalize()} \n React with 🎉 to join the giveaway")
     embed.add_field(name=f"Requirements", value=f"{str(giveaway_req.content).capitalize()}")
     embed.add_field(name=f"Giveaway end date", value=f"{giveaway_date}")
     await channel.send(embed=embed)

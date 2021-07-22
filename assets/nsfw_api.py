@@ -17,7 +17,7 @@ async def get_hentai(subject):
             if result == "":
                 result = await gelbooru.random_post(tags=subject)
             print(result)
-            if result == None:
+            if result is None:
                 return "None"        
     except asyncio.TimeoutError:
         pass
